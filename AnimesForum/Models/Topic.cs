@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace AnimesForum.Models
 {
@@ -12,7 +13,9 @@ namespace AnimesForum.Models
         [DataType(DataType.MultilineText)]
         public required string Description { get; set; }
 
-        public required string Creator { get; set; }
+        public string? UserId { get; set; }
+
+        public virtual IdentityUser? User { get; set; }
 
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]

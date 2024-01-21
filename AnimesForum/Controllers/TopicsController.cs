@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using AnimesForum.Data;
 using AnimesForum.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace AnimesForum.Controllers
 {
@@ -15,16 +16,20 @@ namespace AnimesForum.Controllers
     public class TopicsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public TopicsController(ApplicationDbContext context)
+        public TopicsController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Topics
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Topic.ToListAsync());
+            var userId = _userManager.GetUserId(User);
+            var userTopics = await _context.Topics.Where(t => t.UserId == userId).ToListAsync();
+            return View(userTopics);
         }
 
         // GET: Topics/Details/5
@@ -35,7 +40,7 @@ namespace AnimesForum.Controllers
                 return NotFound();
             }
 
-            var topic = await _context.Topic
+            var topic = await _context.Topics
                 .FirstOrDefaultAsync(m => m.TopicId == id);
             if (topic == null)
             {
@@ -55,10 +60,13 @@ namespace AnimesForum.Controllers
         // Todo: Do protection from overposting attacks
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TopicId,Title,Description,Creator,CreationDate")] Topic topic)
+        public async Task<IActionResult> Create([Bind("TopicId,Title,Description")] Topic topic)
         {
             if (ModelState.IsValid)
             {
+                topic.UserId = _userManager.GetUserId(User);
+                topic.CreationDate = DateTime.Now;
+
                 _context.Add(topic);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -74,11 +82,17 @@ namespace AnimesForum.Controllers
                 return NotFound();
             }
 
-            var topic = await _context.Topic.FindAsync(id);
+            var topic = await _context.Topics.FindAsync(id);
             if (topic == null)
             {
                 return NotFound();
             }
+
+            if (topic.UserId != _userManager.GetUserId(User))
+            {
+                return Forbid();
+            }
+
             return View(topic);
         }
 
@@ -86,7 +100,7 @@ namespace AnimesForum.Controllers
         // Todo: Do protection from overposting attacks
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("TopicId,Title,Description,Creator,CreationDate")] Topic topic)
+        public async Task<IActionResult> Edit(int id, [Bind("TopicId,Title,Description,UserId")] Topic topic)
         {
             if (id != topic.TopicId)
             {
@@ -97,6 +111,11 @@ namespace AnimesForum.Controllers
             {
                 try
                 {
+                    if (topic.UserId != _userManager.GetUserId(User))
+                    {
+                        return Forbid(); 
+                    }
+
                     _context.Update(topic);
                     await _context.SaveChangesAsync();
                 }
@@ -124,11 +143,16 @@ namespace AnimesForum.Controllers
                 return NotFound();
             }
 
-            var topic = await _context.Topic
+            var topic = await _context.Topics
                 .FirstOrDefaultAsync(m => m.TopicId == id);
             if (topic == null)
             {
                 return NotFound();
+            }
+
+            if (topic.UserId != _userManager.GetUserId(User))
+            {
+                return Forbid();
             }
 
             return View(topic);
@@ -139,19 +163,21 @@ namespace AnimesForum.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var topic = await _context.Topic.FindAsync(id);
-            if (topic != null)
+            var topic = await _context.Topics.FindAsync(id);
+
+            if (topic.UserId != _userManager.GetUserId(User))
             {
-                _context.Topic.Remove(topic);
+                return Forbid();
             }
 
+            _context.Topics.Remove(topic); 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool TopicExists(int id)
         {
-            return _context.Topic.Any(e => e.TopicId == id);
+            return _context.Topics.Any(e => e.TopicId == id);
         }
     }
 }

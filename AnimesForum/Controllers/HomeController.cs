@@ -19,7 +19,7 @@ namespace AnimesForum.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var topics = await _context.Topic.ToListAsync();
+            var topics = await _context.Topics.ToListAsync();
             return View(topics);
         }
 
