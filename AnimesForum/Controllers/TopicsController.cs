@@ -9,6 +9,7 @@ using AnimesForum.Data;
 using AnimesForum.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using AnimesForum.ViewModels;
 
 namespace AnimesForum.Controllers
 {
@@ -27,10 +28,20 @@ namespace AnimesForum.Controllers
         // GET: Topics
         public async Task<IActionResult> Index()
         {
-            var userId = _userManager.GetUserId(User);
-            var userTopics = await _context.Topics.Where(t => t.UserId == userId).ToListAsync();
-            return View(userTopics);
+            var topicsWithUsers = await _context.Topics
+                .Select(topic => new TopicViewModel
+                {
+                    TopicId = topic.TopicId,
+                    Title = topic.Title,
+                    Description = topic.Description,
+                    CreationDate = topic.CreationDate,
+                    UserName = _context.Users.FirstOrDefault(user => user.Id == topic.UserId).UserName
+                })
+                .ToListAsync();
+
+            return View(topicsWithUsers);
         }
+
 
         // GET: Topics/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -45,6 +56,12 @@ namespace AnimesForum.Controllers
             if (topic == null)
             {
                 return NotFound();
+            }
+
+            var user = await _userManager.FindByIdAsync(topic.UserId);
+            if (user != null)
+            {
+                ViewBag.UserEmail = user.Email;
             }
 
             return View(topic);
@@ -64,7 +81,9 @@ namespace AnimesForum.Controllers
         {
             if (ModelState.IsValid)
             {
-                topic.UserId = _userManager.GetUserId(User);
+                var user = await _userManager.GetUserAsync(User);
+                topic.UserId = user.Id;
+                //topic.UserEmail = user.Email;
                 topic.CreationDate = DateTime.Now;
 
                 _context.Add(topic);
