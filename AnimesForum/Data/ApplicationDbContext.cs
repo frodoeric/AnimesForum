@@ -10,6 +10,6 @@ namespace AnimesForum.Data
             : base(options)
         {
         }
-        public DbSet<AnimesForum.Models.Topic> Topic { get; set; } = default!;
+        public DbSet<Topic> Topic { get; set; } = default!;
     }
 }

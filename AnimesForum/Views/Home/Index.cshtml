@@ -2,7 +2,14 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@model IEnumerable<Topic>
+
+<h2>Tópicos Recentes</h2>
+
+@foreach (var topic in Model)
+{
+    <div>
+        <h3>@Html.DisplayFor(modelItem => topic.Title)</h3>
+        <p>@Html.DisplayFor(modelItem => topic.Description)</p>
+    </div>
+}

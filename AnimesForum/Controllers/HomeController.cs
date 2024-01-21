@@ -1,5 +1,7 @@
+using AnimesForum.Data;
 using AnimesForum.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace AnimesForum.Controllers
@@ -7,15 +9,18 @@ namespace AnimesForum.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var topics = await _context.Topic.ToListAsync();
+            return View(topics);
         }
 
         public IActionResult Privacy()
