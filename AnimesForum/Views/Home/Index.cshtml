@@ -4,12 +4,20 @@
 
 @model IEnumerable<Topic>
 
-<h2>Tópicos Recentes</h2>
+<h2>Recent Topics</h2>
 
-@foreach (var topic in Model)
+@if (Model.Any())
 {
-    <div>
-        <h3>@Html.DisplayFor(modelItem => topic.Title)</h3>
-        <p>@Html.DisplayFor(modelItem => topic.Description)</p>
-    </div>
+    @foreach (var topic in Model)
+    {
+        <div>
+            <h3>@Html.DisplayFor(modelItem => topic.Title)</h3>
+            <p>@Html.DisplayFor(modelItem => topic.Description)</p>
+        </div>
+    }
 }
+else
+{
+    <p>No topics found</p>
+}
+
