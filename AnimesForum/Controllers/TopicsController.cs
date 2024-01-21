@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AnimesForum.Data;
 using AnimesForum.Models;
@@ -25,7 +20,7 @@ namespace AnimesForum.Controllers
         }
 
         // GET: Topics
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 5)
         {
             var totalTopics = await _context.Topics.CountAsync();
 
@@ -82,7 +77,6 @@ namespace AnimesForum.Controllers
         }
 
         // POST: Topics/Create
-        // Todo: Do protection from overposting attacks
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -125,7 +119,6 @@ namespace AnimesForum.Controllers
         }
 
         // POST: Topics/Edit/5
-        // Todo: Do protection from overposting attacks
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
