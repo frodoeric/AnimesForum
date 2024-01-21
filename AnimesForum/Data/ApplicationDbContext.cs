@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using AnimesForum.Models;
 
 namespace AnimesForum.Data
 {
@@ -9,5 +10,6 @@ namespace AnimesForum.Data
             : base(options)
         {
         }
+        public DbSet<AnimesForum.Models.Topic> Topic { get; set; } = default!;
     }
 }
