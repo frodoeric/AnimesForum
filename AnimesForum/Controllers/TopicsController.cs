@@ -13,7 +13,6 @@ using AnimesForum.ViewModels;
 
 namespace AnimesForum.Controllers
 {
-    [Authorize]
     public class TopicsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -26,9 +25,14 @@ namespace AnimesForum.Controllers
         }
 
         // GET: Topics
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
+            var totalTopics = await _context.Topics.CountAsync();
+
             var topicsWithUsers = await _context.Topics
+                .OrderBy(t => t.CreationDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(topic => new TopicViewModel
                 {
                     TopicId = topic.TopicId,
@@ -38,6 +42,9 @@ namespace AnimesForum.Controllers
                     UserName = _context.Users.FirstOrDefault(user => user.Id == topic.UserId).UserName
                 })
                 .ToListAsync();
+
+            ViewBag.TotalPages = (int)Math.Ceiling(totalTopics / (double)pageSize);
+            ViewBag.CurrentPage = page;
 
             return View(topicsWithUsers);
         }
@@ -68,6 +75,7 @@ namespace AnimesForum.Controllers
         }
 
         // GET: Topics/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -76,6 +84,7 @@ namespace AnimesForum.Controllers
         // POST: Topics/Create
         // Todo: Do protection from overposting attacks
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TopicId,Title,Description")] Topic topic)
         {
@@ -83,7 +92,6 @@ namespace AnimesForum.Controllers
             {
                 var user = await _userManager.GetUserAsync(User);
                 topic.UserId = user.Id;
-                //topic.UserEmail = user.Email;
                 topic.CreationDate = DateTime.Now;
 
                 _context.Add(topic);
@@ -94,6 +102,7 @@ namespace AnimesForum.Controllers
         }
 
         // GET: Topics/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -118,6 +127,7 @@ namespace AnimesForum.Controllers
         // POST: Topics/Edit/5
         // Todo: Do protection from overposting attacks
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("TopicId,Title,Description,UserId")] Topic topic)
         {
@@ -132,7 +142,7 @@ namespace AnimesForum.Controllers
                 {
                     if (topic.UserId != _userManager.GetUserId(User))
                     {
-                        return Forbid(); 
+                        return Forbid();
                     }
 
                     _context.Update(topic);
@@ -155,6 +165,7 @@ namespace AnimesForum.Controllers
         }
 
         // GET: Topics/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -179,6 +190,7 @@ namespace AnimesForum.Controllers
 
         // POST: Topics/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -189,7 +201,7 @@ namespace AnimesForum.Controllers
                 return Forbid();
             }
 
-            _context.Topics.Remove(topic); 
+            _context.Topics.Remove(topic);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
