@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using AnimesForum.Data;
 using AnimesForum.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AnimesForum.Controllers
 {
+    [Authorize]
     public class TopicsController : Controller
     {
         private readonly ApplicationDbContext _context;
